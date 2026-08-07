@@ -23,7 +23,7 @@
     };
 
     initContent = ''
-      fastfetch
+      nitch
 
       yo() {
           if [[ "$*" == "do u suck" ]]; then 
