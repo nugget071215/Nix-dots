@@ -218,34 +218,12 @@
     wayland
     wayland-protocols
     wayland-scanner
-    libxkbcommon
-    libxkbcommon.dev
-
-    alsa-lib
-    alsa-lib.dev
-
-    systemd
-    systemd.dev
-    udev
-    udev.dev
-
-    pkg-config
-
-    vulkan-loader
-    vulkan-headers
-    mesa
-    libdrm
-
-    xorg.libX11
-    xorg.libXcursor
-    xorg.libXi
-    xorg.libXrandr
-
     clang
     gcc
     cmake
     unityhub
     os-prober 
+    nitch
 # i like femboys
   ];
   system.stateVersion = "26.05"; 
