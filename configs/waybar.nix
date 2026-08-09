@@ -34,8 +34,6 @@
 
         battery = {
           format = "{capacity}%";
-          format-charging = "󰂄 {capacity}%";
-          format-full = "󰁹 {capacity}%";
           tooltip = false;
         };
 
