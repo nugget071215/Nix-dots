@@ -11,8 +11,8 @@
     exec-once=swayidle -w
     exec-once=waypaper --restore
 
-    monitorrule=name:^HDMI-A-1$,width:2560,height:1440,refresh:144,x:0,y:0
-    monitorrule=name:^eDP-1$,width:1920,height:1200,x:2560,y:0
+    monitorrule=name:^HDMI-A-1$,width:2560,height:1440,refresh:144,x:1920,y:0
+    monitorrule=name:^eDP-1$,width:1920,height:1200,x:0,y:0
 
     blur=1
     blur_layer=0
@@ -211,7 +211,7 @@
     bind=SUPER,period,focusmon,right
 
     bind=SUPER+SHIFT,comma,tagmon,left
-
+    bind=SUPER+SHIFT,period,tagmon,right
 
     bind=SUPER,minus,adjust_mfact,-0.05
     bind=SUPER,equal,adjust_mfact,+0.05
