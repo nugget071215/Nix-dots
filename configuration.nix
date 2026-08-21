@@ -37,6 +37,7 @@
   };
   services.xserver.enable = true;
   services.desktopManager.plasma6.enable = true;
+  services.displayManager.defaultSession = "plasma";
   services.printing.enable = true;
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -122,6 +123,10 @@
   };
   programs.firefox.enable = true;
   services.displayManager.sddm.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  programs.hyprland.enable = true;
+  programs.dwl.enable = true;
+
   services.upower.enable = true;
   
   hardware.bluetooth.enable = true;
@@ -136,28 +141,83 @@
     enable = true;
     enable32Bit = true;
   };
-  
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
     extraPortals = with pkgs; [
-      xdg-desktop-portal-wlr
+      xdg-desktop-portal-hyprland
       xdg-desktop-portal-gtk
     ];
 
     config.common.default = "*";
     config.mango.default = "gtk";
+    # KDE Plasma session: use the KDE portal backend (talks to KWin), so
+    # PipeWire screen capture in OBS works.
+    config.kde.default = "kde";
+    config.kde."org.freedesktop.impl.portal.ScreenCast" = "kde";
+    config.kde."org.freedesktop.impl.portal.Screenshot" = "kde";
+    # Hyprland session: use the Hyprland portal backend.
+    config.hyprland.default = "hyprland";
+    # Generic fallback for any other session.
+    config.common.default = "gtk";
   };
 
-  systemd.user.services.xdg-desktop-portal-wlr = {
-    serviceConfig = {
-      ExecStartPre = "${pkgs.coreutils}/bin/sleep 3";
-      Environment = [
-        "WAYLAND_DISPLAY=wayland-0"
-        "PATH=/run/current-system/sw/bin"
-      ];
+  # Without an explicit chooser, xdg-desktop-portal-wlr falls back to its
+  # default slurp/wmenu/wofi/... chain, which it cannot find because the
+  # systemd unit PATH lacks /run/current-system/sw/bin. Point it at slurp
+  # (absolute store path) so the OBS screen-picker actually shows up.
+  xdg.portal.wlr = {
+    enable = true;
+    settings.screencast = {
+      chooser_type = "simple";
+      chooser_cmd = "${pkgs.slurp}/bin/slurp -f 'Monitor: %o' -or";
     };
   };
+
+  # Hyprland does not activate graphical-session.target on its own, but
+  # xdg-desktop-portal refuses to start without it (Requisite=). Pull it in
+  # from a persistent user service so the portal can start at login.
+  systemd.user.services.portal-bootstrap = {
+    description = "Activate graphical-session.target for xdg-desktop-portal";
+    wantedBy = [ "default.target" ];
+    wants = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    before = [ "xdg-desktop-portal.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.coreutils}/bin/true";
+    };
+  };
+
+  # The portal frontend can come up before the session environment
+  # (WAYLAND_DISPLAY, XDG_CURRENT_DESKTOP) is imported into the user
+  # manager, so it binds the ScreenCast backend to the wrong portal and
+  # OBS sees "[pipewire] No capture sources available". Once the session
+  # env is present, restart the frontend so it re-resolves the config and
+  # activates the wlr backend.
+  systemd.user.services.fix-screencast = {
+    description = "Restart the screen capture portal after session env import";
+    wantedBy = [ "default.target" ];
+    after = [
+      "graphical-session.target"
+      "xdg-desktop-portal.service"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      i=0
+      while [ $i -lt 30 ] && ! ${pkgs.systemd}/bin/systemctl --user show-environment | ${pkgs.gnugrep}/bin/grep -q '^WAYLAND_DISPLAY='; do
+        i=$((i+1))
+        sleep 1
+      done
+      ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service
+    '';
+  };
+
+  systemd.user.services.xdg-desktop-portal.wantedBy = [ "default.target" ];
 
   environment.systemPackages = with pkgs; [
     vim 
@@ -178,7 +238,17 @@
     zsh
     fastfetch
     starship
-    obs-studio
+    (pkgs.runCommand "obs-wayland" {
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+    } ''
+      mkdir -p $out/bin $out/share/applications $out/share/icons
+      makeWrapper ${pkgs.obs-studio}/bin/obs $out/bin/obs \
+        --set QT_QPA_PLATFORM wayland
+
+      install -Dm444 ${pkgs.obs-studio}/share/applications/com.obsproject.Studio.desktop \
+        $out/share/applications/com.obsproject.Studio.desktop
+      cp -r ${pkgs.obs-studio}/share/icons/hicolor $out/share/icons/
+    '')
     r2modman
     prismlauncher
     vesktop
@@ -191,7 +261,6 @@
     ratty
     opencode
     bat
-    niri
     git
     wget
     hyprshot
@@ -226,7 +295,6 @@
     cairo 
     pango
     waybar
-    davinci-resolve
     krita
     dust 
     cbonsai 
@@ -239,8 +307,6 @@
     onefetch
     terminaltexteffects
     pokemon-colorscripts
-    kdePackages.kdenlive
-    python3
     love
     grim 
     slurp 
@@ -278,6 +344,28 @@
     os-prober 
     nitch
     ghostty
+    discord
+    gnome-terminal
+    openjdk
+    sptlrx
+    jq
+    asciiquarium
+    yt-dlp 
+    ffmpeg 
+    librewolf
+    kdePackages.dolphin
+    audacity
+    kdePackages.kdenlive
+    (python3.withPackages (ps: with ps; [
+      pygame
+    ]))
+    hyprland
+    ferium
+    foot 
+    wlroots_0_19
+    wl-clipboard
+    gnumake
+    shotcut
 # i like femboys
   ];
   system.stateVersion = "26.05"; 

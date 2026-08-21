@@ -27,6 +27,10 @@
        inputs.nixpkgs.follows = "nixpkgs";
     };
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
+    caelestia-shell = {
+      url = "github:caelestia-dots/shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, ... }: {
@@ -39,14 +43,15 @@
 
       modules = [
         ./configuration.nix
-        
+
+        inputs.mangowm.nixosModules.mango
+
         home-manager.nixosModules.home-manager
 
         {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
-            
             home-manager.extraSpecialArgs = {
               inherit inputs;
             };

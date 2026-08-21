@@ -3,19 +3,24 @@
 {
     imports = [
         ./configs/zsh.nix
-        ./configs/starship.nix
         ./configs/spicetify.nix
-        ./configs/niri.nix
-        ./configs/hyprland.nix
         ./configs/fastfetch.nix
-        ./configs/mango.nix
-        ./configs/waybar.nix
-        ./configs/noctalia.nix
+        inputs.mangowm.hmModules.mango
         ./configs/quickshell.nix
+        ./configs/ghostty.nix
+        ./configs/bt-headset-audio.nix
+        inputs.caelestia-shell.homeManagerModules.default
     ];
+
+    programs.caelestia = {
+      enable = true;
+      systemd.enable = false;
+      cli.enable = true;
+    };
 
     home.packages = [
       inputs.zen-browser.packages.${pkgs.system}.default
+      inputs.helium.packages.${pkgs.system}.default
       pkgs.spicetify-cli
     ];
 
@@ -30,12 +35,6 @@
       [Desktop Entry]
       Hidden=true
     '';
-
-    home.pointerCursor = {
-      package = pkgs.bibata-cursors;
-      name = "Bibata-Modern-Ice";
-      size = 24;
-    };
 
     home.username = "aves";
     home.homeDirectory = "/home/aves";
