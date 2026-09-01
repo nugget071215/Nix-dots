@@ -64,9 +64,9 @@
     variant = "";
   };
 
-  services.desktopManager.plasma6.enable = true;
-  services.displayManager.sddm.enable = true;
-  services.displayManager.defaultSession = "plasma";
+  services.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
+  services.displayManager.defaultSession = "gnome";
 
   services.printing.enable = true;
 
@@ -171,14 +171,6 @@
   };
 
   # ─────────────────────────────────────────────────────────────
-  # Desktop / Window Managers
-  # ─────────────────────────────────────────────────────────────
-
-  programs.hyprland.enable = true;
-  programs.dwl.enable = true;
-  programs.mango.enable = true;
-
-  # ─────────────────────────────────────────────────────────────
   # Bluetooth / Power
   # ─────────────────────────────────────────────────────────────
 
@@ -242,7 +234,7 @@
 
     config.common.default = "gtk";
 
-    config.kde.default = "kde";
+    config.kde.default = "gnome";
     config.kde."org.freedesktop.impl.portal.ScreenCast" = "kde";
     config.kde."org.freedesktop.impl.portal.Screenshot" = "kde";
 
